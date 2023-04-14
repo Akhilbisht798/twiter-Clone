@@ -1,21 +1,40 @@
 import React from "react";
 import { IconType } from "react-icons";
+import { useRouter } from "next/router";
+import { useCallback } from "react";
+import useCurrentUser from "@/hooks/useCurrentUser";
+import useLoginModal from "@/hooks/useLoginModal";
 
 interface SidebarItemProps {
-    label: string,
-    href: string,
-    icon: IconType,
-    onClick?: () => void
+    label: string;
+    href: string;
+    icon: IconType;
+    onClick?: () => void;
+    auth?: boolean;
 }
 
-const SidebarItem: React.FC<SidebarItemProps>  = ({
+const SidebarItem: React.FC<SidebarItemProps> = ({
     label,
     href,
     icon: Icon,
-    onClick
+    onClick,
+    auth,
 }) => {
+    const loginModal = useLoginModal();
+    const { data: currentUser } = useCurrentUser();
+    const router = useRouter();
+    const handleClick = useCallback(() => {
+        if (onClick) {
+            return onClick();
+        }
+        if (auth && !currentUser) {
+            loginModal.onOpen();
+        } else if (href) {
+            router.push(href);
+        }
+    }, [router, onClick, href, currentUser, auth, loginModal]);
     return (
-        <div className="flex flex-row items-center">
+        <div onClick={handleClick} className="flex flex-row items-center">
             <div
                 className="
                     relative
@@ -32,7 +51,7 @@ const SidebarItem: React.FC<SidebarItemProps>  = ({
                     lg:hidden
                 "
             >
-                <Icon size={28} color="white" /> 
+                <Icon size={28} color="white" />
             </div>
             <div
                 className="
@@ -49,12 +68,10 @@ const SidebarItem: React.FC<SidebarItemProps>  = ({
                 "
             >
                 <Icon size={24} color="white" />
-                <p className="lg:block text-white text-xl">
-                    {label}
-                </p>
+                <p className="lg:block text-white text-xl">{label}</p>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default SidebarItem;
